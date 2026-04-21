@@ -18,7 +18,7 @@ body {
 }
 
 .container {
-    width: 800px;
+    width: 1000px;
     backdrop-filter: blur(15px);
     background: rgba(255,255,255,0.08);
     border-radius: 20px;
@@ -30,15 +30,8 @@ h1 {
     font-size: 32px;
 }
 
-.card {
-    background: rgba(255,255,255,0.08);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-}
-
 input, button {
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
     border: none;
     margin: 5px;
@@ -55,10 +48,25 @@ button {
 .top-bar {
     display: flex;
     gap: 10px;
+    margin-bottom: 20px;
 }
 
 .top-bar input {
     flex: 1;
+}
+
+/* 🔥 3 KOLONE */
+.dashboard {
+    display: flex;
+    gap: 20px;
+}
+
+.column {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    padding: 15px;
+    border-radius: 15px;
+    min-height: 400px;
 }
 
 .task {
@@ -114,27 +122,31 @@ button {
 <button onclick="addTask()">➕</button>
 </div>
 
-<!-- RED 1 -->
+<div class="dashboard">
 
-<div class="card">
+<!-- 🔥 KOLONA 1 -->
+
+<div class="column">
+<h3>📊 Statistika</h3>
 <canvas id="chart"></canvas>
+
 <div class="stats">
-Završeno: <span id="done">0</span> |
-Preostalo: <span id="left">0</span> |
+Završeno: <span id="done">0</span><br>
+Preostalo: <span id="left">0</span><br>
 Procenat: <span id="percent">0%</span>
 </div>
 </div>
 
-<!-- RED 2 -->
+<!-- 🔥 KOLONA 2 -->
 
-<div class="card">
+<div class="column">
 <h3>📋 Zadaci</h3>
 <div id="taskList"></div>
 </div>
 
-<!-- RED 3 -->
+<!-- 🔥 KOLONA 3 -->
 
-<div class="card">
+<div class="column">
 <h3>📜 History</h3>
 <div id="historyList"></div>
 </div>
@@ -143,7 +155,7 @@ Procenat: <span id="percent">0%</span>
 
 </div>
 
-<!-- FIREBASE -->
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
@@ -168,7 +180,6 @@ window.signOut = signOut;
 let tasks=[];
 let currentUser=null;
 
-// 🔔 TRAŽI DOZVOLU
 if(Notification.permission !== "granted"){
     Notification.requestPermission();
 }
@@ -292,7 +303,7 @@ function drawChart(done,total){
     });
 }
 
-// 🔔 POUZDANI REMINDER
+// 🔔 reminder
 function checkReminders(){
     let now = new Date();
 
