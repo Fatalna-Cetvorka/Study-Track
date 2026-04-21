@@ -29,35 +29,22 @@ body {
 h1 {
     text-align: center;
     font-size: 32px;
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    text-align: center;
-    opacity: 0.7;
-    margin-bottom: 20px;
 }
 
 input, button {
     padding: 12px;
     border-radius: 10px;
     border: none;
+    margin: 5px;
 }
 
 button {
     background: linear-gradient(45deg,#2ecc71,#27ae60);
     color: white;
     cursor: pointer;
-    transition: 0.3s;
 }
 
-button:hover {
-    transform: scale(1.05);
-}
-
-.logout {
-    background: #e74c3c;
-}
+.logout { background: #e74c3c; }
 
 .top-bar {
     display: flex;
@@ -65,18 +52,14 @@ button:hover {
     margin-bottom: 20px;
 }
 
-.top-bar input {
-    flex: 1;
-}
+.top-bar input { flex: 1; }
 
 .main {
     display: flex;
     gap: 20px;
 }
 
-.left, .right {
-    flex: 1;
-}
+.left, .right { flex: 1; }
 
 .card {
     background: rgba(255,255,255,0.08);
@@ -93,11 +76,6 @@ button:hover {
     margin: 8px 0;
     border-radius: 10px;
     background: rgba(255,255,255,0.1);
-    transition: 0.3s;
-}
-
-.task:hover {
-    transform: scale(1.02);
 }
 
 .completed {
@@ -116,7 +94,6 @@ button:hover {
     border-left: 2px solid #2ecc71;
     padding-left: 10px;
 }
-
 </style>
 
 </head>
@@ -126,7 +103,6 @@ button:hover {
 <div class="container">
 
 <h1>📘 StudyTrack</h1>
-<div class="subtitle">Organizuj svoj uspeh</div>
 
 <div id="auth">
 <input id="email" placeholder="Email">
@@ -148,22 +124,17 @@ button:hover {
 <div class="main">
 
 <div class="left">
-
 <div class="card">
 <canvas id="chart"></canvas>
 </div>
-
 <div id="taskList"></div>
-
 </div>
 
 <div class="right">
-
 <div class="card">
 <h3>📜 History</h3>
 <div id="historyList"></div>
 </div>
-
 </div>
 
 </div>
@@ -171,15 +142,21 @@ button:hover {
 </div>
 
 </div>
+
+<!-- 🔥 FIREBASE -->
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyAacLUBW1jTTq09ZG1AsxHgJ69F5W9TgdM",
   authDomain: "study-truck.firebaseapp.com",
   projectId: "study-truck",
+  storageBucket: "study-truck.firebasestorage.app",
+  messagingSenderId: "181921831800",
+  appId: "1:181921831800:web:7d2636de20ca03aa5bc68d",
+  measurementId: "G-LTYDSFQTSF"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -210,8 +187,8 @@ function login(){
 function logout(){signOut(auth);location.reload();}
 
 function showApp(){
-    auth.style.display="none";
-    app.style.display="block";
+    document.getElementById("auth").style.display="none";
+    document.getElementById("app").style.display="block";
     loadTasks();
 }
 
@@ -226,7 +203,13 @@ function saveTasks(){
 
 function addTask(){
     if(!taskInput.value)return;
-    tasks.push({text:taskInput.value,time:taskTime.value,done:false});
+
+    tasks.push({
+        text:taskInput.value,
+        time:taskTime.value,
+        done:false
+    });
+
     saveTasks();
     render();
 }
@@ -298,8 +281,7 @@ function drawChart(done,total){
                 data:[done,total-done],
                 backgroundColor:['#2ecc71','#e74c3c']
             }]
-        },
-        options:{animation:{animateScale:true}}
+        }
     });
 }
 </script>
