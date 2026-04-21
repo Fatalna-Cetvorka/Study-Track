@@ -18,17 +18,23 @@ body {
 }
 
 .container {
-    width: 900px;
+    width: 800px;
     backdrop-filter: blur(15px);
     background: rgba(255,255,255,0.08);
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.3);
 }
 
 h1 {
     text-align: center;
     font-size: 32px;
+}
+
+.card {
+    background: rgba(255,255,255,0.08);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
 }
 
 input, button {
@@ -39,7 +45,7 @@ input, button {
 }
 
 button {
-    background: linear-gradient(45deg,#2ecc71,#27ae60);
+    background: #2ecc71;
     color: white;
     cursor: pointer;
 }
@@ -49,33 +55,20 @@ button {
 .top-bar {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
 }
 
-.top-bar input { flex: 1; }
-
-.main {
-    display: flex;
-    gap: 20px;
-}
-
-.left, .right { flex: 1; }
-
-.card {
-    background: rgba(255,255,255,0.08);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 15px;
+.top-bar input {
+    flex: 1;
 }
 
 .task {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px;
+    padding: 10px;
     margin: 8px 0;
-    border-radius: 10px;
     background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
 }
 
 .completed {
@@ -83,16 +76,16 @@ button {
     opacity: 0.5;
 }
 
-.time {
-    font-size: 12px;
-    opacity: 0.7;
+.stats {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 18px;
 }
 
 .history-item {
-    font-size: 14px;
-    padding: 5px 0;
-    border-left: 2px solid #2ecc71;
+    border-left: 3px solid #2ecc71;
     padding-left: 10px;
+    margin: 5px 0;
 }
 </style>
 
@@ -116,34 +109,41 @@ button {
 <button class="logout" onclick="logout()">Logout</button>
 
 <div class="top-bar">
-<input id="taskInput" placeholder="Dodaj zadatak...">
+<input id="taskInput" placeholder="Zadatak">
 <input type="datetime-local" id="taskTime">
 <button onclick="addTask()">➕</button>
 </div>
 
-<div class="main">
+<!-- RED 1 -->
 
-<div class="left">
 <div class="card">
 <canvas id="chart"></canvas>
+<div class="stats">
+Završeno: <span id="done">0</span> |
+Preostalo: <span id="left">0</span> |
+Procenat: <span id="percent">0%</span>
 </div>
+</div>
+
+<!-- RED 2 -->
+
+<div class="card">
+<h3>📋 Zadaci</h3>
 <div id="taskList"></div>
 </div>
 
-<div class="right">
+<!-- RED 3 -->
+
 <div class="card">
 <h3>📜 History</h3>
 <div id="historyList"></div>
 </div>
-</div>
 
 </div>
 
 </div>
 
-</div>
-
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE -->
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
@@ -153,10 +153,6 @@ const firebaseConfig = {
   apiKey: "AIzaSyAacLUBW1jTTq09ZG1AsxHgJ69F5W9TgdM",
   authDomain: "study-truck.firebaseapp.com",
   projectId: "study-truck",
-  storageBucket: "study-truck.firebasestorage.app",
-  messagingSenderId: "181921831800",
-  appId: "1:181921831800:web:7d2636de20ca03aa5bc68d",
-  measurementId: "G-LTYDSFQTSF"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -171,6 +167,11 @@ window.signOut = signOut;
 <script>
 let tasks=[];
 let currentUser=null;
+
+// 🔔 TRAŽI DOZVOLU
+if(Notification.permission !== "granted"){
+    Notification.requestPermission();
+}
 
 function register(){
     createUserWithEmailAndPassword(auth,email.value,password.value)
@@ -207,7 +208,8 @@ function addTask(){
     tasks.push({
         text:taskInput.value,
         time:taskTime.value,
-        done:false
+        done:false,
+        notified:false
     });
 
     saveTasks();
@@ -241,12 +243,7 @@ function render(){
 
         if(t.done){div.classList.add("completed");done++;}
 
-        div.innerHTML=`
-            <div>
-                ${t.text}
-                <div class="time">${t.time||""}</div>
-            </div>
-        `;
+        div.innerHTML=t.text;
 
         div.onclick=()=>toggle(i);
 
@@ -265,7 +262,17 @@ function render(){
         }
     });
 
+    updateStats(done,tasks.length);
     drawChart(done,tasks.length);
+}
+
+function updateStats(done,total){
+    let left = total - done;
+    let percent = total === 0 ? 0 : Math.round((done/total)*100);
+
+    document.getElementById("done").innerText = done;
+    document.getElementById("left").innerText = left;
+    document.getElementById("percent").innerText = percent + "%";
 }
 
 function drawChart(done,total){
@@ -284,6 +291,31 @@ function drawChart(done,total){
         }
     });
 }
+
+// 🔔 POUZDANI REMINDER
+function checkReminders(){
+    let now = new Date();
+
+    tasks.forEach(t=>{
+        if(!t.time || t.done || t.notified) return;
+
+        let taskTime = new Date(t.time);
+        let diff = (taskTime - now) / 1000;
+
+        if(diff <= 0 && diff > -60){
+            if(Notification.permission === "granted"){
+                new Notification("⏰ " + t.text);
+            } else {
+                alert("⏰ " + t.text);
+            }
+
+            t.notified = true;
+            saveTasks();
+        }
+    });
+}
+
+setInterval(checkReminders,10000);
 </script>
 
 </body>
