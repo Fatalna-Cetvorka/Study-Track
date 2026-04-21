@@ -84,7 +84,7 @@ li {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAacLUBW1jTTq09ZG1AsxHgJ69F5W9TgdM",
@@ -92,18 +92,17 @@ const firebaseConfig = {
   projectId: "study-truck",
   storageBucket: "study-truck.firebasestorage.app",
   messagingSenderId: "181921831800",
-  appId: "1:181921831800:web:7d2636de20ca03aa5bc68d",
-  measurementId: "G-LTYDSFQTSF"
+  appId: "1:181921831800:web:7d2636de20ca03aa5bc68d"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// izvoz u global
 window.auth = auth;
 window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOut = signOut;
-window.onAuthStateChanged = onAuthStateChanged;
 </script>
 
 <!-- 🔥 APP -->
@@ -114,34 +113,32 @@ let currentUser = null;
 
 function register(){
     createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(()=> alert("Uspešna registracija"))
+    .then((userCredential)=>{
+        currentUser = userCredential.user;
+        showApp();
+    })
     .catch(e=> alert(e.message));
 }
 
 function login(){
     signInWithEmailAndPassword(auth, email.value, password.value)
-    .then(()=> alert("Ulogovan si"))
-    .catch(e=> {
-        console.log(e);
-        alert(e.message);
-    });
+    .then((userCredential)=>{
+        currentUser = userCredential.user;
+        showApp();
+    })
+    .catch(e=> alert(e.message));
 }
 
 function logout(){
     signOut(auth);
+    location.reload();
 }
 
-onAuthStateChanged(auth, user=>{
-    if(user){
-        currentUser = user;
-        document.getElementById("auth").style.display="none";
-        document.getElementById("app").style.display="block";
-        loadTasks();
-    } else {
-        document.getElementById("auth").style.display="block";
-        document.getElementById("app").style.display="none";
-    }
-});
+function showApp(){
+    document.getElementById("auth").style.display="none";
+    document.getElementById("app").style.display="block";
+    loadTasks();
+}
 
 function loadTasks(){
     tasks = JSON.parse(localStorage.getItem("tasks_"+currentUser.uid)) || [];
